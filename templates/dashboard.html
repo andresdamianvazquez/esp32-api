@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard ESP32</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    table { border-collapse: collapse; width: 100%; max-width: 600px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #333; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Dashboard ESP32</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dispositivo</th>
+        <th>Temperatura (°C)</th>
+        <th>Humedad (%)</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="data-body">
+      <tr><td colspan="5">Cargando datos...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function fetchData() {
+      const response = await fetch('/api/datos');
+      const datos = await response.json();
+
+      const tbody = document.getElementById('data-body');
+      tbody.innerHTML = '';
+
+      if (datos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">No hay datos para mostrar</td></tr>';
+        return;
+      }
+
+      datos.forEach(dato => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${dato.id}</td>
+          <td>${dato.dispositivo}</td>
+          <td>${dato.temperatura}</td>
+          <td>${dato.humedad}</td>
+          <td>${new Date(dato.timestamp).toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    fetchData();
+
+    // Actualizar datos cada 10 segundos
+    setInterval(fetchData, 10000);
+  </script>
+</body>
+</html>
