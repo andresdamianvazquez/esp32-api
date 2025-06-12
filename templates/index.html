@@ -9,6 +9,14 @@
 </head>
 <body>
   <h1>Datos del ESP32</h1>
+  <label for="cantidad">Mostrar últimos:</label>
+<select id="cantidad" onchange="cargarDatos()">
+  <option value="5">5</option>
+  <option value="10" selected>10</option>
+  <option value="20">20</option>
+  <option value="50">50</option>
+</select>
+
   <div id="datos-container"></div>
   <canvas id="grafico" width="400" height="200"></canvas>
 

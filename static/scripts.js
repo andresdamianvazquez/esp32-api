@@ -1,15 +1,19 @@
+let chart = null;
+
 async function cargarDatos() {
-  const response = await fetch("/api/datos");
+  const cantidad = document.getElementById("cantidad").value;
+  const response = await fetch(`/api/datos?limit=${cantidad}`);
   const datos = await response.json();
 
   const container = document.getElementById("datos-container");
 
   if (datos.length === 0) {
     container.innerHTML = "<p>No hay datos aún.</p>";
+    if(chart) chart.destroy();
     return;
   }
 
-  // Crear tabla
+  // Tabla
   let tabla = `
     <table>
       <thead>
@@ -48,39 +52,51 @@ async function cargarDatos() {
   tabla += "</tbody></table>";
   container.innerHTML = tabla;
 
-  // Crear gráfico
+  // Gráfico
   const ctx = document.getElementById("grafico").getContext("2d");
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: etiquetas,
-      datasets: [
-        {
-          label: 'Temperatura (°C)',
-          data: temperaturas,
-          borderColor: 'rgba(255, 99, 132, 1)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          fill: false,
-          tension: 0.3
-        },
-        {
-          label: 'Humedad (%)',
-          data: humedades,
-          borderColor: 'rgba(54, 162, 235, 1)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          fill: false,
-          tension: 0.3
+
+  if(chart) {
+    chart.data.labels = etiquetas;
+    chart.data.datasets[0].data = temperaturas;
+    chart.data.datasets[1].data = humedades;
+    chart.update();
+  } else {
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: etiquetas,
+        datasets: [
+          {
+            label: 'Temperatura (°C)',
+            data: temperaturas,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Humedad (%)',
+            data: humedades,
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            fill: false,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Últimos datos del ESP32' }
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: true, text: 'Últimos datos del ESP32' }
       }
-    }
-  });
+    });
+  }
 }
 
-window.onload = cargarDatos;
+// Carga inicial y refresco cada 10 segundos
+window.onload = () => {
+  cargarDatos();
+  setInterval(cargarDatos, 10000);
+}

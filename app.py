@@ -52,9 +52,10 @@ def recibir_datos():
 
 @app.route('/api/datos', methods=['GET'])
 def ver_datos():
+    limit = request.args.get('limit', default=10, type=int)
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT * FROM datos ORDER BY id DESC LIMIT 10')
+            cur.execute('SELECT * FROM datos ORDER BY id DESC LIMIT %s', (limit,))
             columnas = [desc[0] for desc in cur.description]
             datos = [dict(zip(columnas, fila)) for fila in cur.fetchall()]
     return jsonify(datos), 200
