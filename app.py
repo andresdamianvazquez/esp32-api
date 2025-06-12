@@ -51,3 +51,7 @@ def ver_datos():
             columnas = [desc[0] for desc in cur.description]
             datos = [dict(zip(columnas, fila)) for fila in cur.fetchall()]
     return jsonify(datos), 200
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
