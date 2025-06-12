@@ -29,8 +29,8 @@ with get_conn() as conn:
 
 
 @app.route('/')
-def dashboard():
-    return render_template('dashboard.html')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/datos', methods=['POST'])
 def recibir_datos():
