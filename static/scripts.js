@@ -35,8 +35,8 @@ async function cargarDatos() {
       fila.innerHTML = `
         <td>${dato.id}</td>
         <td>${dato.dispositivo}</td>
-        <td>${dato.temperatura.toFixed(2)}</td>
-        <td>${dato.humedad.toFixed(2)}</td>
+        <td>${dato.temperatura != null ? dato.temperatura.toFixed(2) : "N/A"}</td>
+        <td>${dato.humedad != null ? dato.humedad.toFixed(2) : "N/A"}</td>
         <td>${new Date(dato.timestamp).toLocaleString()}</td>
       `;
       tbody.appendChild(fila);
