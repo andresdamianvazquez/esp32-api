@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import psycopg2
 import os
 from datetime import datetime
+from flask import render_template
 
 app = Flask(__name__)
 
@@ -24,6 +25,12 @@ with get_conn() as conn:
             )
         ''')
         conn.commit()
+
+
+
+@app.route('/')
+def dashboard():
+    return render_template('dashboard.html')
 
 @app.route('/api/datos', methods=['POST'])
 def recibir_datos():
