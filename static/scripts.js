@@ -1,17 +1,22 @@
 let grafico = null;
+let intervalo = null;
 
 async function cargarDatos() {
-  const cantidad = document.getElementById("cantidad").value;
+  const cantidad = parseInt(document.getElementById("cantidad").value);
+  if (isNaN(cantidad) || cantidad <= 0) return;
+
   const spinner = document.getElementById("spinner");
   const contenedor = document.getElementById("datos-container");
 
-  // Mostrar spinner y limpiar tabla
   spinner.style.display = "block";
   contenedor.innerHTML = "";
 
   try {
     const response = await fetch(`/api/datos?cantidad=${cantidad}`);
     const datos = await response.json();
+
+    // Invertir para que los datos más viejos estén primero
+    const datosOrdenados = datos.slice().reverse();
 
     // Generar tabla
     const tabla = document.createElement("table");
@@ -30,7 +35,7 @@ async function cargarDatos() {
     `;
 
     const tbody = document.createElement("tbody");
-    datos.forEach(dato => {
+    datosOrdenados.forEach(dato => {
       const fila = document.createElement("tr");
       fila.innerHTML = `
         <td>${dato.id}</td>
@@ -47,7 +52,7 @@ async function cargarDatos() {
     contenedor.appendChild(tabla);
 
     // Actualizar gráfico
-    actualizarGrafico(datos);
+    actualizarGrafico(datosOrdenados);
 
   } catch (error) {
     contenedor.innerHTML = `<div class="alert alert-danger">Error cargando datos: ${error}</div>`;
@@ -63,7 +68,6 @@ function actualizarGrafico(datos) {
   const temperaturas = datos.map(d => d.temperatura);
   const humedades = datos.map(d => d.humedad);
 
-  // Si ya existe un gráfico, lo destruimos
   if (grafico) {
     grafico.destroy();
   }
@@ -102,7 +106,9 @@ function actualizarGrafico(datos) {
 }
 
 // Cargar al iniciar
-window.onload = cargarDatos;
-
-// Refrescar cada 10 segundos (opcional)
-setInterval(cargarDatos, 10000);
+window.onload = () => {
+  cargarDatos();
+  // Refrescar cada 10 seg
+  if (intervalo) clearInterval(intervalo);
+  intervalo = setInterval(cargarDatos, 10000);
+};
