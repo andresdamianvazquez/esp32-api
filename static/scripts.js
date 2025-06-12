@@ -1,102 +1,108 @@
-let chart = null;
+let grafico = null;
 
 async function cargarDatos() {
   const cantidad = document.getElementById("cantidad").value;
-  const response = await fetch(`/api/datos?limit=${cantidad}`);
-  const datos = await response.json();
+  const spinner = document.getElementById("spinner");
+  const contenedor = document.getElementById("datos-container");
 
-  const container = document.getElementById("datos-container");
+  // Mostrar spinner y limpiar tabla
+  spinner.style.display = "block";
+  contenedor.innerHTML = "";
 
-  if (datos.length === 0) {
-    container.innerHTML = "<p>No hay datos aún.</p>";
-    if(chart) chart.destroy();
-    return;
-  }
+  try {
+    const response = await fetch(`/api/datos?cantidad=${cantidad}`);
+    const datos = await response.json();
 
-  // Tabla
-  let tabla = `
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Dispositivo</th>
-          <th>Temperatura (°C)</th>
-          <th>Humedad (%)</th>
-          <th>Fecha y hora</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+    // Generar tabla
+    const tabla = document.createElement("table");
+    tabla.className = "table table-striped table-bordered table-hover align-middle";
 
-  const etiquetas = [];
-  const temperaturas = [];
-  const humedades = [];
-
-  datos.reverse().forEach(d => {
-    const fecha = new Date(d.timestamp).toLocaleString();
-    etiquetas.push(fecha);
-    temperaturas.push(d.temperatura);
-    humedades.push(d.humedad);
-
-    tabla += `
+    const thead = document.createElement("thead");
+    thead.className = "table-primary";
+    thead.innerHTML = `
       <tr>
-        <td>${d.id}</td>
-        <td>${d.dispositivo}</td>
-        <td>${d.temperatura}</td>
-        <td>${d.humedad}</td>
-        <td>${fecha}</td>
+        <th>ID</th>
+        <th>Dispositivo</th>
+        <th>Temperatura (°C)</th>
+        <th>Humedad (%)</th>
+        <th>Fecha y hora</th>
       </tr>
     `;
-  });
 
-  tabla += "</tbody></table>";
-  container.innerHTML = tabla;
-
-  // Gráfico
-  const ctx = document.getElementById("grafico").getContext("2d");
-
-  if(chart) {
-    chart.data.labels = etiquetas;
-    chart.data.datasets[0].data = temperaturas;
-    chart.data.datasets[1].data = humedades;
-    chart.update();
-  } else {
-    chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: etiquetas,
-        datasets: [
-          {
-            label: 'Temperatura (°C)',
-            data: temperaturas,
-            borderColor: 'rgba(255, 99, 132, 1)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            fill: false,
-            tension: 0.3
-          },
-          {
-            label: 'Humedad (%)',
-            data: humedades,
-            borderColor: 'rgba(54, 162, 235, 1)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            fill: false,
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: 'Últimos datos del ESP32' }
-        }
-      }
+    const tbody = document.createElement("tbody");
+    datos.forEach(dato => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${dato.id}</td>
+        <td>${dato.dispositivo}</td>
+        <td>${dato.temperatura.toFixed(2)}</td>
+        <td>${dato.humedad.toFixed(2)}</td>
+        <td>${new Date(dato.timestamp).toLocaleString()}</td>
+      `;
+      tbody.appendChild(fila);
     });
+
+    tabla.appendChild(thead);
+    tabla.appendChild(tbody);
+    contenedor.appendChild(tabla);
+
+    // Actualizar gráfico
+    actualizarGrafico(datos);
+
+  } catch (error) {
+    contenedor.innerHTML = `<div class="alert alert-danger">Error cargando datos: ${error}</div>`;
+  } finally {
+    spinner.style.display = "none";
   }
 }
 
-// Carga inicial y refresco cada 10 segundos
-window.onload = () => {
-  cargarDatos();
-  setInterval(cargarDatos, 10000);
+function actualizarGrafico(datos) {
+  const ctx = document.getElementById("grafico").getContext("2d");
+
+  const labels = datos.map(d => new Date(d.timestamp).toLocaleTimeString());
+  const temperaturas = datos.map(d => d.temperatura);
+  const humedades = datos.map(d => d.humedad);
+
+  // Si ya existe un gráfico, lo destruimos
+  if (grafico) {
+    grafico.destroy();
+  }
+
+  grafico = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Temperatura (°C)',
+          data: temperaturas,
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Humedad (%)',
+          data: humedades,
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 }
+
+// Cargar al iniciar
+window.onload = cargarDatos;
+
+// Refrescar cada 10 segundos (opcional)
+setInterval(cargarDatos, 10000);
