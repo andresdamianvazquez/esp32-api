@@ -106,9 +106,5 @@ function actualizarGrafico(datos) {
 }
 
 // Cargar al iniciar
-window.onload = () => {
-  cargarDatos();
-  // Refrescar cada 10 seg
-  if (intervalo) clearInterval(intervalo);
-  intervalo = setInterval(cargarDatos, 100000);
-};
+window.onload = cargarDatos
+
