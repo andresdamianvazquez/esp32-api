@@ -110,5 +110,5 @@ window.onload = () => {
   cargarDatos();
   // Refrescar cada 10 seg
   if (intervalo) clearInterval(intervalo);
-  intervalo = setInterval(cargarDatos, 10000);
+  intervalo = setInterval(cargarDatos, 100000);
 };
