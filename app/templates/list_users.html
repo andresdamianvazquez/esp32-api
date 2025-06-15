@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Usuarios</h2>
+  {% if usuarios %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Admin</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>
+              {% if u.is_admin %}
+                <span class="badge bg-success">Sí</span>
+              {% else %}
+                <span class="badge bg-secondary">No</span>
+              {% endif %}
+            </td>
+            <td>
+              <!-- Botones para futuras acciones -->
+              <a href="{{ url_for('main.edit_user', user_id=u.id) }}" class="btn btn-sm btn-primary">Editar</a>
+              <form method="POST" action="{{ url_for('main.delete_user', user_id=u.id) }}" style="display:inline">
+  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro?')">Borrar</button>
+</form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">No hay usuarios registrados.</div>
+  {% endif %}
+</div>
+{% endblock %}

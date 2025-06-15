@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Dispositivo: {{ device.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Dispositivo: {{ device.name }}</h2>
+
+  {% if device.users %}
+    <p><strong>Usuarios asignados:</strong> {{ device.users | map(attribute='username') | join(', ') }}</p>
+  {% else %}
+    <p><strong>Usuarios asignados:</strong> Ninguno</p>
+  {% endif %}
+
+  <!-- Tabla de datos recibidos -->
+  <h2>Datos Recientes</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Fecha y Hora</th>
+            <th>Latitud</th>
+            <th>Longitud</th>
+            <th>Temperatura (°C)</th>
+            <th>Humedad (%)</th>
+            <th>Extra 1</th>
+            <th>Extra 2</th>
+            <th>Extra 3</th>
+            <th>Extra 4</th>
+            <th>Extra 5</th>
+            <th>Extra 6</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in datos %}
+        <tr>
+            <td>{{ d.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ d.latitude or 'N/A' }}</td>
+            <td>{{ d.longitude or 'N/A' }}</td>
+            <td>{{ d.temperature or 'N/A' }}</td>
+            <td>{{ d.humidity or 'N/A' }}</td>
+            <td>{{ d.extra1 or 'N/A' }}</td>
+            <td>{{ d.extra2 or 'N/A' }}</td>
+            <td>{{ d.extra3 or 'N/A' }}</td>
+            <td>{{ d.extra4 or 'N/A' }}</td>
+            <td>{{ d.extra5 or 'N/A' }}</td>
+            <td>{{ d.extra6 or 'N/A' }}</td>
+            
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">No hay datos registrados para este dispositivo.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+  {% if current_user.is_admin %}
+    <a href="{{ url_for('main.assign_device', device_id=device.id) }}" class="btn btn-sm btn-secondary mt-3">Asignar usuarios</a>
+  {% endif %}
+
+  <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary mt-3">← Volver</a>
+</div>
+{% endblock %}
